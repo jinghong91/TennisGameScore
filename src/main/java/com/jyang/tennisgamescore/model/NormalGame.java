@@ -24,4 +24,11 @@ public class NormalGame implements Game {
     public NormalGameScore getCurrentScore() {
         return scoreList.get(scoreList.size() - 1);
     }
+
+    @Override
+    public void addScore(Score score) {
+        scoreList.add((NormalGameScore) score);
+    }
+
+
 }

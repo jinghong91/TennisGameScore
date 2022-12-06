@@ -1,6 +1,5 @@
 package com.jyang.tennisgamescore.services.impl;
 
-import com.jyang.tennisgamescore.TennisGameScoreApplication;
 import com.jyang.tennisgamescore.model.*;
 import com.jyang.tennisgamescore.services.MatchService;
 import com.jyang.tennisgamescore.utils.ScoreCalculator;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MatchServiceImpl implements MatchService {
     private static final Logger LOG = LoggerFactory.getLogger(MatchServiceImpl.class);
-    private static final String LINE_SEPARATOR=System.getProperty("line.separator");
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     @Value("${title.tieBreak.score:TB Score}")
     private String tieBreakScoreMsg;
 
@@ -44,8 +43,8 @@ public class MatchServiceImpl implements MatchService {
         }
 
         // 6 : 6
-        if (player1.getCurrentGame().getCurrentScore().getSetScore() == 6 &&
-                player2.getCurrentGame().getCurrentScore().getSetScore() == 6) {
+        if (player1.getCurrentGame().getCurrentScore().getSetScore() == 6
+                && player2.getCurrentGame().getCurrentScore().getSetScore() == 6) {
             player1.getGameList().add(new TieBreak());
             player2.getGameList().add(new TieBreak());
             return false;
@@ -59,8 +58,8 @@ public class MatchServiceImpl implements MatchService {
             return false;
         }
 
-        if (player1.getCurrentGame().getCurrentScore().getSetScore() == 6 ||
-                player2.getCurrentGame().getCurrentScore().getSetScore() == 6) {
+        if (player1.getCurrentGame().getCurrentScore().getSetScore() == 6
+                || player2.getCurrentGame().getCurrentScore().getSetScore() == 6) {
             return true;
         }
         player1.getGameList().add(new NormalGame(player1.getCurrentGame().getCurrentScore().getSetScore()));
@@ -71,20 +70,18 @@ public class MatchServiceImpl implements MatchService {
     @Override
     public Point updateScore(Player winner, Player loser) {
         Point point;
-        if (winner.getCurrentGame() instanceof NormalGame winnerGame) {
-            NormalGame loserGame = (NormalGame) loser.getCurrentGame();
-            point = scoreCalculator.nextNormalScore(winnerGame.getCurrentScore(),
-                    loserGame.getCurrentScore());
-            winnerGame.getScoreList().add((NormalGameScore) point.getWinnerScore());
-            loserGame.getScoreList().add((NormalGameScore) point.getLoserScore());
+        Game winnerGame = winner.getCurrentGame();
+        Game loserGame = loser.getCurrentGame();
+
+        Score winnerCurrentScore = winnerGame.getCurrentScore();
+        Score loserCurrentScore = loserGame.getCurrentScore();
+        if (winner.getCurrentGame() instanceof NormalGame) {
+            point = scoreCalculator.nextNormalScore((NormalGameScore) winnerCurrentScore, (NormalGameScore) loserCurrentScore);
         } else {
-            TieBreak winnerGame = (TieBreak) winner.getCurrentGame();
-            TieBreak loserGame = (TieBreak) loser.getCurrentGame();
-            point = scoreCalculator.nextTieBreakScore(winnerGame.getCurrentScore(),
-                    loserGame.getCurrentScore());
-            winnerGame.getScoreList().add((TieBreakScore) point.getWinnerScore());
-            loserGame.getScoreList().add((TieBreakScore) point.getLoserScore());
+            point = scoreCalculator.nextTieBreakScore((TieBreakScore) winnerCurrentScore, (TieBreakScore) loserCurrentScore);
         }
+        winnerGame.addScore(point.getWinnerScore());
+        loserGame.addScore(point.getLoserScore());
         return point;
     }
 
@@ -102,29 +99,26 @@ public class MatchServiceImpl implements MatchService {
             Game game1 = player1.getGameList().get(i);
             Game game2 = player2.getGameList().get(i);
             if (game1 instanceof NormalGame) {
+                String title = String.format(normalGameFormatter, gameScoreMsg, setScoreMsg);
                 for (int j = 0; j < ((NormalGame) game1).getScoreList().size(); j++) {
-                    sbTitle.append(String.format(normalGameFormatter, gameScoreMsg, setScoreMsg));
+                    sbTitle.append(title);
 
                     NormalGameScore score1 = ((NormalGame) game1).getScoreList().get(j);
-                    sbScore1.append(String.format(normalGameFormatter, score1.getGameScore().getValue(),
-                            score1.getSetScore()));
+                    sbScore1.append(String.format(normalGameFormatter, score1.getGameScore().getValue(), score1.getSetScore()));
 
                     NormalGameScore score2 = ((NormalGame) game2).getScoreList().get(j);
-                    sbScore2.append(String.format(normalGameFormatter, score2.getGameScore().getValue(),
-                            score2.getSetScore()));
+                    sbScore2.append(String.format(normalGameFormatter, score2.getGameScore().getValue(), score2.getSetScore()));
                 }
             } else {
+                String title = String.format(tieBreakFormatter, gameScoreMsg, setScoreMsg, tieBreakScoreMsg);
                 for (int j = 0; j < ((TieBreak) game1).getScoreList().size(); j++) {
-                    sbTitle.append(String.format(tieBreakFormatter, gameScoreMsg, setScoreMsg,
-                            tieBreakScoreMsg));
+                    sbTitle.append(title);
 
                     TieBreakScore score1 = ((TieBreak) game1).getScoreList().get(j);
-                    sbScore1.append(String.format(tieBreakFormatter, 0, score1.getGameScore(),
-                            score1.getSetScore()));
+                    sbScore1.append(String.format(tieBreakFormatter, 0, score1.getGameScore(), score1.getSetScore()));
 
                     TieBreakScore score2 = ((TieBreak) game2).getScoreList().get(j);
-                    sbScore2.append(String.format(tieBreakFormatter, 0, score2.getGameScore(),
-                            score2.getSetScore()));
+                    sbScore2.append(String.format(tieBreakFormatter, 0, score2.getGameScore(), score2.getSetScore()));
                 }
             }
         }
@@ -133,11 +127,10 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public void displayScore(ScoreTable scoreTable) {
-        String result = LINE_SEPARATOR + scoreTable.getTitle() +
-                LINE_SEPARATOR +
-                scoreTable.getPlayer1Score() +
-                LINE_SEPARATOR +
-                scoreTable.getPlayer2Score();
+        String result = LINE_SEPARATOR
+                + scoreTable.getTitle() + LINE_SEPARATOR
+                + scoreTable.getPlayer1Score() + LINE_SEPARATOR
+                + scoreTable.getPlayer2Score();
         LOG.info(result);
     }
 }

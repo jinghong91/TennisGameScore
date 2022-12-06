@@ -45,20 +45,24 @@ public class TennisGameScoreApplication implements CommandLineRunner {
             player2.getGameList().add(new NormalGame());
 
             boolean isMatchFinished = false;
+            loop:
             while (!isMatchFinished) {
                 Point point;
                 LOG.info("Please enter winner number(1|2):");
                 String line = scanner.nextLine();
 
-                if ("1".equals(line)) {
-                    point = matchService.updateScore(player1, player2);
-                } else if ("2".equals(line)) {
-                    point = matchService.updateScore(player2, player1);
-                } else if ("Exit".equals(line)) {
-                    break;
-                } else {
-                    LOG.info("Invalid input");
-                    continue;
+                switch (line.toLowerCase()) {
+                    case "1":
+                        point = matchService.updateScore(player1, player2);
+                        break;
+                    case "2":
+                        point = matchService.updateScore(player2, player1);
+                        break;
+                    case "exit":
+                        break loop;
+                    default:
+                        LOG.info("Invalid input");
+                        continue;
                 }
 
                 if (point.isGameFinished()) {
@@ -67,7 +71,7 @@ public class TennisGameScoreApplication implements CommandLineRunner {
 
                 LOG.info("Display score(Y|N):N");
                 line = scanner.nextLine();
-                if ("Y".equals(line) || "y".equals(line)) {
+                if ("Y".equalsIgnoreCase(line)) {
                     matchService.displayScore(matchService.generateScoreTable(player1, player2));
                 }
             }

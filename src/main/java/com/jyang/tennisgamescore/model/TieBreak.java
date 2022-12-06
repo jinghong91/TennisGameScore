@@ -20,4 +20,10 @@ public class TieBreak implements Game {
         return scoreList.get(scoreList.size() - 1);
     }
 
+    @Override
+    public void addScore(Score score) {
+        scoreList.add((TieBreakScore) score);
+    }
+
+
 }
